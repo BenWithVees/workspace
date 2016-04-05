@@ -7,6 +7,8 @@ import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import javax.persistence.Table;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 @Entity
 @Table(name = "users")
 @NamedQueries({ @NamedQuery(name = "User.findUserInfo", query = "SELECT u FROM User u WHERE u.username =:username"),
@@ -20,6 +22,10 @@ public class User {
 
 	@Column(name = "username")
 	private String username;
+
+	@JsonIgnore
+	@Column(name = "password")
+	private String password;
 
 	@Column(name = "email")
 	private String email;
@@ -36,6 +42,14 @@ public class User {
 
 	public void setUsername(String username) {
 		this.username = username;
+	}
+
+	public String getPassword(){
+		return password;
+	}
+
+	public void setPassword(String password) {
+		this.password = password;
 	}
 
 	public String getEmail() {
