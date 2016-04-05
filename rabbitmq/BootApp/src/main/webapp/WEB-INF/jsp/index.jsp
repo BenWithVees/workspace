@@ -162,16 +162,15 @@ body {
 <body>
 	<form:form modelAttribute="user" commandName="user">
 		<div class="container">
+			<c:if test="${not empty err}">${err }</c:if>
 			<ul class="tags">
 				<li><form:input path="username" placeholder="Enter username" /></li>
 				<li><button type="submit" value="Submit">Submit</button></li>
 				<c:forEach items="${users}" var="users">
-					<li><a href="/${users.username}">${users.username} <span>${users.userId }</span></a></li>
-					<!-- 				<li><a href="#">Icon <span>8</span></a></li> -->
-					<!-- 				<li><a href="#">Typography <span>15</span></a></li> -->
-					<!-- 				<li><a href="#">Color <span>16</span></a></li> -->
+					<li><a href="/json/${users.username}">${users.username} <span>${users.userId }</span></a></li>
 				</c:forEach>
 			</ul>
+			<a href="./add">Add</a>
 		</div>
 	</form:form>
 </body>
