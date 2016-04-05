@@ -7,7 +7,9 @@ import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.PersistenceContextType;
 import javax.persistence.TypedQuery;
+import javax.transaction.Transactional;
 
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.ModelAttribute;
@@ -40,23 +42,56 @@ public class IndexController {
 		ModelAndView view = new ModelAndView();
 		TypedQuery<User> query = em.createNamedQuery("User.findUserInfo", User.class);
 		query.setParameter("username", user.getUsername());
+		boolean bo = false;
 		try {
 			query.getSingleResult();
-			view.setViewName("redirect:/" + user.getUsername());
+			bo = true;
 		} catch (Exception e) {
 			System.out.println(e);
-			view.setViewName("redirect:/");
 		}
-
+		if (bo == true) {
+			view.setViewName("redirect:/json/" + user.getUsername());
+		} else {
+			model.addAttribute("err", "Username doesn't exist");
+			view.setViewName("index");
+		}
 		return view;
 
 	}
 
-	@RequestMapping(value = "/{username}", method = RequestMethod.GET, produces = "application/json")
+	@RequestMapping(value = "/json/{username}", method = RequestMethod.GET, produces = "application/json")
 	public User restUser(@PathVariable("username") String username) {
 		TypedQuery<User> query = em.createNamedQuery("User.findUserInfo", User.class);
 		query.setParameter("username", username);
 		User user = query.getSingleResult();
 		return user;
+	}
+
+	@RequestMapping(value = "/add", method = RequestMethod.GET)
+	public ModelAndView viewAddUser(Model model) {
+		ModelAndView view = new ModelAndView();
+		User user = new User();
+		view.addObject("user", user);
+		return view;
+	}
+
+	@Transactional
+	@RequestMapping(value = "/add", method = RequestMethod.POST)
+	public ModelAndView addUser(@ModelAttribute("user") User user, Model model, BindingResult result) {
+		model.addAttribute("user", user);
+		ModelAndView view = new ModelAndView();
+		try {
+			BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+			String hashedPassword = passwordEncoder.encode(user.getPassword());
+			user.setPassword(hashedPassword);
+			em.persist(user);
+			view.setViewName("redirect:/");
+			view.addObject("user", user);
+		} catch (IllegalStateException e) {
+			System.err.println(e);
+			view.setViewName("redirect:/add");
+		}
+
+		return view;
 	}
 }
